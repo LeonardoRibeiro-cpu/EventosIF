@@ -7,11 +7,11 @@ import {
     View,
 } from 'react-native';
 import CartaoEvento from '../componentes/CartaoEvento';
-import { AppContexto } from '../contextos/AppContexto';
+import { TemaContexto } from '../contextos/TemaContexto';
 import { estadoInicial, eventosRedutor } from '../redutores/eventosRedutor';
 
 export default function TelaEventos({ navigation }) {
-    const { temaEscuro } = useContext(AppContexto);
+    const { temaEscuro } = useContext(TemaContexto);
 
     const [estado, despachar] = useReducer(eventosRedutor, estadoInicial);
     const [busca, setBusca] = useState('');
