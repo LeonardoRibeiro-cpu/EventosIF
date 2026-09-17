@@ -20,8 +20,7 @@ export default function TelaEventos({ navigation }) {
     const [busca, setBusca] = useState('');
 
     const [inscricoes, setInscricoes] = useState([]);
-    const [eventoSelecionado, setEventoSelecionado] = useState(null);
-
+    const [eventoSelecionadoId, setEventoSelecionadoId] = useState(null);
     useEffect(() => {
         fetch('https://api.campus.iftm.edu.br/eventos')
             .then((resposta) => resposta.json())
@@ -42,12 +41,12 @@ export default function TelaEventos({ navigation }) {
         setInscricoes((inscricoesAtuais) => {
             const jaInscrito = inscricoesAtuais.some((item) => item.id === evento.id);
             if (jaInscrito) {
-                return inscricoesAtuais; 
+                return inscricoesAtuais;
             }
             return [...inscricoesAtuais, evento];
         });
 
-        setEventoSelecionado(evento);
+        setEventoSelecionadoId(evento.id);
         setEnviado(true);
     }
 
@@ -65,9 +64,9 @@ export default function TelaEventos({ navigation }) {
             />
             {carregando && <ActivityIndicator size="large" />}
             {erro && <Text style={styles.erro}>Falha: {erro}</Text>}
-            {enviado && eventoSelecionado && (
+            {enviado && eventoSelecionadoId && (
                 <Text style={styles.aviso}>
-                    Inscrição confirmada em {eventoSelecionado.titulo}
+                    Inscrição confirmada em {eventos.find(e => e.id === eventoSelecionadoId)?.titulo}
                 </Text>
             )}
             <FlatList
