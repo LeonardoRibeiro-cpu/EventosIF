@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useReducer, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -8,15 +8,12 @@ import {
 } from 'react-native';
 import CartaoEvento from '../componentes/CartaoEvento';
 import { AppContexto } from '../contextos/AppContexto';
+import { estadoInicial, eventosRedutor } from '../redutores/eventosRedutor';
 
 export default function TelaEventos({ navigation }) {
     const { temaEscuro } = useContext(AppContexto);
 
-    const [eventos, setEventos] = useState([]);
-    const [carregando, setCarregando] = useState(true);
-    const [erro, setErro] = useState(null);
-    const [enviado, setEnviado] = useState(false);
-
+    const [estado, despachar] = useReducer(eventosRedutor, estadoInicial);
     const [busca, setBusca] = useState('');
 
     const [inscricoes, setInscricoes] = useState([]);
@@ -25,14 +22,13 @@ export default function TelaEventos({ navigation }) {
         fetch('https://api.campus.iftm.edu.br/eventos')
             .then((resposta) => resposta.json())
             .then((dados) => {
-                setEventos(dados);
-                setCarregando(false);
+                despachar({ tipo: 'SUCESSO', payload: dados });
             })
             .catch((e) => {
-                setErro(e.message);
+                despachar({ tipo: 'FALHA', payload: e.message });
             });
     }, []);
-    const eventosFiltrados = eventos.filter((ev) =>
+    const eventosFiltrados = estado.eventos.filter((ev) =>
         ev.titulo.toLowerCase().includes(busca.toLowerCase())
     );
 
@@ -47,7 +43,7 @@ export default function TelaEventos({ navigation }) {
         });
 
         setEventoSelecionadoId(evento.id);
-        setEnviado(true);
+        despachar({ tipo: 'INSCRITO' });
     }
 
     console.log('[render] TelaEventos');
@@ -62,11 +58,11 @@ export default function TelaEventos({ navigation }) {
                 onChangeText={setBusca}
                 placeholder="Buscar evento"
             />
-            {carregando && <ActivityIndicator size="large" />}
-            {erro && <Text style={styles.erro}>Falha: {erro}</Text>}
-            {enviado && eventoSelecionadoId && (
+            {estado.status === 'carregando' && <ActivityIndicator size="large" />}
+            {estado.status === 'falha' && <Text style={styles.erro}>Falha: {estado.erro}</Text>}
+            {estado.status === 'inscrito' && eventoSelecionadoId && (
                 <Text style={styles.aviso}>
-                    Inscrição confirmada em {eventos.find(e => e.id === eventoSelecionadoId)?.titulo}
+                    Inscrição confirmada em {estado.eventos.find(e => e.id === eventoSelecionadoId)?.titulo}
                 </Text>
             )}
             <FlatList
@@ -77,7 +73,7 @@ export default function TelaEventos({ navigation }) {
                         evento={item}
                         aoInscrever={() => inscrever(item)}
                         aoAbrir={() =>
-                            navigation.navigate('Detalhe', { evento: item })}
+                            navigation.navigate('Detalhe', { id: item.id })}
                     />
                 )}
             />
