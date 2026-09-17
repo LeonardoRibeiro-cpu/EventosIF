@@ -39,8 +39,14 @@ export default function TelaEventos({ navigation }) {
 
     const totalInscricoes = inscricoes.length;
     function inscrever(evento) {
-        inscricoes.push(evento);
-        setInscricoes(inscricoes);
+        setInscricoes((inscricoesAtuais) => {
+            const jaInscrito = inscricoesAtuais.some((item) => item.id === evento.id);
+            if (jaInscrito) {
+                return inscricoesAtuais; 
+            }
+            return [...inscricoesAtuais, evento];
+        });
+
         setEventoSelecionado(evento);
         setEnviado(true);
     }
