@@ -19,14 +19,32 @@ export default function TelaEventos({ navigation }) {
     const [inscricoes, setInscricoes] = useState([]);
     const [eventoSelecionadoId, setEventoSelecionadoId] = useState(null);
     useEffect(() => {
-        fetch('https://api.campus.iftm.edu.br/eventos')
-            .then((resposta) => resposta.json())
+        const controlador = new AbortController();
+
+       
+        fetch('https://api.campus.iftm.edu.br/eventos', { signal: controlador.signal })
+            .then((resposta) => {
+                if (!resposta.ok) {
+                    throw new Error(`Erro HTTP: ${resposta.status}`);
+                }
+                return resposta.json();
+            })
             .then((dados) => {
                 despachar({ tipo: 'SUCESSO', payload: dados });
             })
             .catch((e) => {
+                
+                if (e.name === 'AbortError') {
+                    console.log('Requisição cancelada porque a tela foi desmontada.');
+                    return;
+                }
+                
                 despachar({ tipo: 'FALHA', payload: e.message });
             });
+
+        return () => {
+            controlador.abort();
+        };
     }, []);
     const eventosFiltrados = estado.eventos.filter((ev) =>
         ev.titulo.toLowerCase().includes(busca.toLowerCase())
